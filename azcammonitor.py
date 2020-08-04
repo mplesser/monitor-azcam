@@ -693,7 +693,7 @@ class Monitor(socketserver.ThreadingTCPServer, socketserver.ThreadingUDPServer):
                         testSocket.settimeout(1)
                         testSocket.connect((self.cmd_host, self.MonitorData[indx].cmd_port))
                         testSocket.close()
-                        retVal = "Process: " + self.MonitorData[indx].name + "is already running"
+                        retVal = "Process: " + self.MonitorData[indx].name + " is already running"
                     except Exception:
                         # Process is not running
                         p = subprocess.Popen(
