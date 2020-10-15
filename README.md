@@ -1,6 +1,6 @@
 # azcam-monitor
 
-*azcam-monitor* is an python app used to monitor and control *azcam* processes on the local network.
+*azcam-monitor* is an *azcam* extension app used to monitor and control *azcam* processes on the local network.
 
 ## Documentation
 
