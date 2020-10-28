@@ -13,5 +13,5 @@ setup(
     keywords="ccd imaging astronomy observation observatory",
     packages=find_packages(),
     zip_safe=False,
-    install_requires=["azcam", "flask"],
+    install_requires=["azcam", "flask", "psutil"],
 )
