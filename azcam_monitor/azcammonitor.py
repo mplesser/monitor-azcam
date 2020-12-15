@@ -10,7 +10,7 @@ import threading
 import time
 
 import psutil
-from webserver.web_server import WebServer
+from azcam_monitor.webserver.web_server import WebServer
 
 import azcam
 
@@ -29,7 +29,7 @@ class DataItem(object):
         self.count = 0
 
 
-class Monitor(socketserver.ThreadingTCPServer, socketserver.ThreadingUDPServer):
+class AzCamMonitor(socketserver.ThreadingTCPServer, socketserver.ThreadingUDPServer):
     def __init__(self):
 
         self.debug = 1
@@ -68,7 +68,7 @@ class Monitor(socketserver.ThreadingTCPServer, socketserver.ThreadingUDPServer):
         self.NewDataItem = DataItem()
         self.NewDataItem.type = 1
         self.NewDataItem.pid = os.getpid()
-        self.NewDataItem.name = "monitor-azcam"
+        self.NewDataItem.name = "azcam-monitor"
         self.NewDataItem.cmd_port = self.port_reg
         # For monitor use IP address instead of the path
         self.NewDataItem.path = self.cmd_host
@@ -128,10 +128,7 @@ class Monitor(socketserver.ThreadingTCPServer, socketserver.ThreadingUDPServer):
             self.UDPServer.serve_forever()  # blocking loop
         except Exception as message:
             self.UDPServer_running = 0
-            print(
-                "ERROR init_server: %s Is it already running? Exiting..."
-                % repr(message)
-            )
+            print("ERROR init_server: %s Is it already running? Exiting..." % repr(message))
 
         # Exits here when server is aborted
 
@@ -170,10 +167,7 @@ class Monitor(socketserver.ThreadingTCPServer, socketserver.ThreadingUDPServer):
             self.timer_server.serve_forever()  # blocking loop
         except Exception as message:
             self.timer_server_running = 0
-            print(
-                "ERROR init_watchdog: %s Is it already running? Exiting..."
-                % repr(message)
-            )
+            print("ERROR init_watchdog: %s Is it already running? Exiting..." % repr(message))
         return
 
     def watchdog_loop(self):
@@ -218,17 +212,13 @@ class Monitor(socketserver.ThreadingTCPServer, socketserver.ThreadingUDPServer):
                                 + self.MonitorData[indx].cmd_port
                                 + " is not responding. Restarting process..."
                             )
-                            subprocess.Popen(
-                                path, creationflags=subprocess.CREATE_NEW_CONSOLE
-                            )
+                            subprocess.Popen(path, creationflags=subprocess.CREATE_NEW_CONSOLE)
 
                         else:
                             # Check if the process is responding (use TCP connection)
                             cmd_port = self.MonitorData[indx].cmd_port
                             try:
-                                testSocket = socket.socket(
-                                    socket.AF_INET, socket.SOCK_STREAM
-                                )
+                                testSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                                 testSocket.settimeout(1)
                                 testSocket.connect((self.cmd_host, cmd_port))
 
@@ -251,15 +241,12 @@ class Monitor(socketserver.ThreadingTCPServer, socketserver.ThreadingUDPServer):
                                 )
                                 # Process is not responding -> stop it and start again
                                 subprocess.Popen(
-                                    "taskkill /F /T /pid "
-                                    + str(self.MonitorData[indx].pid)
+                                    "taskkill /F /T /pid " + str(self.MonitorData[indx].pid)
                                 )
                                 time.sleep(0.1)
 
                                 # Start the process. Process should register itself and it will keep the same spot in the MonitorData struct.
-                                subprocess.Popen(
-                                    path, creationflags=subprocess.CREATE_NEW_CONSOLE
-                                )
+                                subprocess.Popen(path, creationflags=subprocess.CREATE_NEW_CONSOLE)
 
             self.MonitorDataSemafor.release()
 
@@ -340,19 +327,13 @@ class Monitor(socketserver.ThreadingTCPServer, socketserver.ThreadingUDPServer):
                     self.process_number += 1
 
                     self.NewDataItem.pid = 0
-                    self.NewDataItem.name = self.MonitorConfig.get(
-                        process_section, "name"
-                    )
+                    self.NewDataItem.name = self.MonitorConfig.get(process_section, "name")
                     self.NewDataItem.cmd_port = int(
                         self.MonitorConfig.get(process_section, "cmd_port")
                     )
                     self.NewDataItem.host = self.cmd_host
-                    self.NewDataItem.path = self.MonitorConfig.get(
-                        process_section, "path"
-                    )
-                    self.NewDataItem.flags = self.MonitorConfig.get(
-                        process_section, "flags"
-                    )
+                    self.NewDataItem.path = self.MonitorConfig.get(process_section, "path")
+                    self.NewDataItem.flags = self.MonitorConfig.get(process_section, "flags")
 
                     # Append new DataItem
                     self.MonitorData.append(self.NewDataItem)
@@ -444,7 +425,7 @@ class Monitor(socketserver.ThreadingTCPServer, socketserver.ThreadingUDPServer):
         cnt = len(self.MonitorData)
 
         msg = ""
-        azcam.db.process_list = []
+        self.process_list = []
         data_list = []
         for indx in range(cnt):
             data_list = [
@@ -458,7 +439,7 @@ class Monitor(socketserver.ThreadingTCPServer, socketserver.ThreadingUDPServer):
                 str(self.MonitorData[indx].watchdog),
             ]
             msg = " ".join(data_list)
-            azcam.db.process_list.append(data_list)
+            self.process_list.append(data_list)
 
         self.MonitorDataSemafor.release()
 
@@ -573,6 +554,8 @@ class Monitor(socketserver.ThreadingTCPServer, socketserver.ThreadingUDPServer):
 
         self.MonitorDataSemafor.release()
 
+        print(retVal)
+
         return retVal
 
     def add_process(self, addStr):
@@ -612,9 +595,7 @@ class Monitor(socketserver.ThreadingTCPServer, socketserver.ThreadingUDPServer):
                 time.sleep(0.2)
                 print("Process: " + self.NewDataItem.name + " is added/registered")
 
-                retVal = (
-                    "Process: " + self.NewDataItem.name + " is added/registered\r\n"
-                )
+                retVal = "Process: " + self.NewDataItem.name + " is added/registered\r\n"
         except Exception as message:
             retVal = "ERROR Add/Register..." % repr(message)
 
@@ -708,23 +689,15 @@ class Monitor(socketserver.ThreadingTCPServer, socketserver.ThreadingUDPServer):
                     )
                     time.sleep(0.1)
                     self.MonitorData[indx].pid = int(p.pid)
-                    retVal = (
-                        "Process: " + self.MonitorData[indx].name + " has been started"
-                    )
+                    retVal = "Process: " + self.MonitorData[indx].name + " has been started"
                 else:
                     # Check if process is running
                     try:
                         testSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                         testSocket.settimeout(1)
-                        testSocket.connect(
-                            (self.cmd_host, self.MonitorData[indx].cmd_port)
-                        )
+                        testSocket.connect((self.cmd_host, self.MonitorData[indx].cmd_port))
                         testSocket.close()
-                        retVal = (
-                            "Process: "
-                            + self.MonitorData[indx].name
-                            + " is already running"
-                        )
+                        retVal = "Process: " + self.MonitorData[indx].name + " is already running"
                     except Exception:
                         # Process is not running
                         p = subprocess.Popen(
@@ -733,11 +706,7 @@ class Monitor(socketserver.ThreadingTCPServer, socketserver.ThreadingUDPServer):
                         )
                         self.MonitorData[indx].pid = int(p.pid)
                         time.sleep(0.1)
-                        retVal = (
-                            "Process: "
-                            + self.MonitorData[indx].name
-                            + " has been started"
-                        )
+                        retVal = "Process: " + self.MonitorData[indx].name + " has been started"
 
         if found == 0:
             retVal = "Process: " + str(cmd_port) + " not found"
@@ -766,20 +735,14 @@ class Monitor(socketserver.ThreadingTCPServer, socketserver.ThreadingUDPServer):
                 found = 1
                 if self.MonitorData[indx].pid == 0:
                     # Process ID = 0 -> process not running
-                    retVal = (
-                        "Process: " + self.MonitorData[indx].name + " is not running"
-                    )
+                    retVal = "Process: " + self.MonitorData[indx].name + " is not running"
                 else:
                     # Process ID != 0 -> process is running
                     self.MonitorData[indx].watchdog = 0
-                    subprocess.Popen(
-                        "taskkill /F /T /pid " + str(self.MonitorData[indx].pid)
-                    )
+                    subprocess.Popen("taskkill /F /T /pid " + str(self.MonitorData[indx].pid))
                     time.sleep(0.1)
                     self.MonitorData[indx].pid = 0
-                    retVal = (
-                        "Process: " + self.MonitorData[indx].name + " has been stopped"
-                    )
+                    retVal = "Process: " + self.MonitorData[indx].name + " has been stopped"
 
         if found == 0:
             retVal = "Process: " + self.MonitorData[indx].name + " not found"
@@ -807,9 +770,7 @@ class Monitor(socketserver.ThreadingTCPServer, socketserver.ThreadingUDPServer):
                 self.MonitorData[indx].watchdog = 0
                 self.MonitorData[indx].count = 0
                 # Stop the process
-                subprocess.Popen(
-                    "taskkill /F /T /pid " + str(self.MonitorData[indx].pid)
-                )
+                subprocess.Popen("taskkill /F /T /pid " + str(self.MonitorData[indx].pid))
                 self.MonitorData[indx].pid = 0
                 stopCnt += 1
 
@@ -879,9 +840,7 @@ class Monitor(socketserver.ThreadingTCPServer, socketserver.ThreadingUDPServer):
 
                 # Process is running -> close it
 
-                subprocess.Popen(
-                    "taskkill /F /T /pid " + str(self.MonitorData[procPos].pid)
-                )
+                subprocess.Popen("taskkill /F /T /pid " + str(self.MonitorData[procPos].pid))
                 time.sleep(0.1)
                 self.MonitorData[procPos].pid = 0
             except Exception:
@@ -992,6 +951,7 @@ class Monitor(socketserver.ThreadingTCPServer, socketserver.ThreadingUDPServer):
     #   ***********************************************************************
     def start_webserver(self):
         self.webserver = WebServer()
+        self.webserver.azcammonitor = self
         self.webserver.start()
 
 
@@ -1056,11 +1016,10 @@ class GetUDPRequestHandler(socketserver.BaseRequestHandler):
 
 
 # start process
-monitor = Monitor()
-azcam.db.monitor = monitor
+monitor = AzCamMonitor()
 # monitor.load_configfile("/data/code/azcam-vatt/bin/parameters_vatt_monitor.ini")
 monitor.load_configfile()
 monitor.start_server()
-# monitor.start_watchdog()
+monitor.start_watchdog()
 monitor.print_monitor_data()
 monitor.start_webserver()

@@ -40,8 +40,6 @@ class WebServer(object):
         #: port for webserver
         self.webport = 2400
 
-        azcam.db.webserver = self
-
         self.is_running = 0
 
         # ******************************************************************************
@@ -50,12 +48,10 @@ class WebServer(object):
         @app.route("/", methods=["GET"])
         @app.route("/index", methods=["GET"])
         def index():
-            if self.logcommands:
-                azcam.log("load home page", prefix="Web-> ")
             # get new list each time page is refreshed
-            azcam.db.monitor.refresh_processes()
-            azcam.db.monitor.get_ids()
-            return render_template(index_home, process_list=azcam.db.process_list)
+            self.azcammonitor.refresh_processes()
+            self.azcammonitor.get_ids()
+            return render_template(index_home, process_list=self.azcammonitor.process_list)
 
         # ******************************************************************************
         # api commands
@@ -69,7 +65,7 @@ class WebServer(object):
 
             url = request.url
             if self.logcommands:
-                azcam.log(url, prefix="Web-> ")
+                print(url)
             reply = self.webapi(url)
 
             return self.make_response(command, reply)
@@ -118,7 +114,7 @@ class WebServer(object):
         if obj != "monitor":
             raise azcam.AzcamError(f"remote call not allowed: {obj}", 4)
 
-        caller = getattr(azcam.db.monitor, method)
+        caller = getattr(azcam._monitor, method)
 
         return caller, kwargs
 
@@ -149,7 +145,7 @@ class WebServer(object):
         Stops command server running in thread.
         """
 
-        azcam.log("Stopping the webserver is not supported")
+        print("Stopping the webserver is not supported")
 
         return
 
