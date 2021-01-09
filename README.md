@@ -4,7 +4,7 @@
 
 ## Installation
 
-`pip install azam-monitor`
+`pip install azcam-monitor`
 
 Or download from github: https://github.com/mplesser/azcam-monitor.git.
 

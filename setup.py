@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name="azcam-monitor",
-    version="21.1.1",
+    version="21.1.2",
     description="azcam processes monitor and control app",
     long_description=long_description,
     long_description_content_type="text/markdown",
