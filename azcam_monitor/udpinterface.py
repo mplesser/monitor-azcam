@@ -25,7 +25,7 @@ class UDPinterface(object):
 
         # create a ne wsocket for receiving IDs
         udp_socketData = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        udp_socketData.setsockopt(SOL_SOCKET, SO_BROADCAST, 1)
+        udp_socketData.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
         udp_socketData.setblocking(0)
         udp_socketData.bind(("", 2401))
 
@@ -34,8 +34,8 @@ class UDPinterface(object):
 
         # create a new socket for sending register command
         udp_socketCtrl = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        udp_socketCtrl.setsockopt(SOL_SOCKET, SO_BROADCAST, 1)
-        udp_socketCtrl.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
+        udp_socketCtrl.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+        udp_socketCtrl.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
         # send ID request
         stat = udp_socketCtrl.sendto(bytes(cmd, "utf-8"), ("255.255.255.255", 2400))
@@ -77,7 +77,7 @@ class UDPinterface(object):
                         found = 1
                         IPAddress = recv[4]
 
-                except:
+                except Exception as e:
                     pass
         else:
             print("ERROR: No IDs available")
@@ -100,8 +100,8 @@ class UDPinterface(object):
         self.Resp = []
 
         # create a ne wsocket for receiving IDs
-        udp_socketData = socket(AF_INET, SOCK_DGRAM)
-        udp_socketData.setsockopt(SOL_SOCKET, SO_BROADCAST, 1)
+        udp_socketData = socket(socket.AF_INET, socket.SOCK_DGRAM)
+        udp_socketData.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
         udp_socketData.setblocking(0)
         udp_socketData.bind(("", 2401))
 
@@ -109,9 +109,9 @@ class UDPinterface(object):
         cmd = "0\r\n"
 
         # create a new socket for sending register command
-        udp_socketCtrl = socket(AF_INET, SOCK_DGRAM)
-        udp_socketCtrl.setsockopt(SOL_SOCKET, SO_BROADCAST, 1)
-        udp_socketCtrl.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
+        udp_socketCtrl = socket(socket.AF_INET, socket.SOCK_DGRAM)
+        udp_socketCtrl.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+        udp_socketCtrl.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
         # send ID request
         stat = udp_socketCtrl.sendto(bytes(cmd, "utf-8"), ("255.255.255.255", 2400))
